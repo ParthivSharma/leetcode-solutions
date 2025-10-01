@@ -10,8 +10,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Checkout your repo
+      # Step 1: Checkout your repo (full history)
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
       # Step 2: Setup Node.js (required for leetcode-cli)
       - name: Setup Node.js
@@ -19,21 +21,22 @@ jobs:
         with:
           node-version: '18'
 
-      # Step 3: Install leetcode-cli
-      - name: Install leetcode-cli
-        run: npm install -g leetcode-cli
+      # Step 3: Install dependencies
+      - name: Install leetcode-cli and jq
+        run: |
+          npm install -g leetcode-cli
+          sudo apt-get update && sudo apt-get install -y jq
 
-      # Step 4: Fetch latest submissions
+      # Step 4: Fetch latest C++ submissions
       - name: Fetch latest C++ submissions
         env:
           LEETCODE_SESSION: ${{ secrets.LEETCODE_SESSION }}
         run: |
           mkdir -p cpp
           cd cpp
-          # Fetch last 10 accepted problems
-          leetcode list -s AC | head -n 10 | while read line; do
-              slug=$(echo $line | awk '{print $1}')
-              leetcode show $slug -l cpp -g
+          # Get last 10 accepted problems safely
+          leetcode list -s AC --limit 10 --json | jq -r '.[].titleSlug' | while read slug; do
+              leetcode show "$slug" -l cpp -g
           done
 
       # Step 5: Commit & Push only if there are changes
