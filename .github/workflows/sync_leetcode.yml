@@ -1,0 +1,40 @@
+name: Sync LeetCode Solutions
+
+on:
+  schedule:
+    - cron: '0 * * * *'   # every hour
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install leetcode-cli
+        run: npm install -g leetcode-cli
+
+      - name: Fetch latest submissions
+        env:
+          LEETCODE_SESSION: ${{ secrets.LEETCODE_SESSION }}
+        run: |
+          mkdir -p cpp
+          cd cpp
+          leetcode list -s AC | head -n 10 | while read line; do
+              slug=$(echo $line | awk '{print $1}')
+              leetcode show $slug -l cpp -g
+          done
+
+      - name: Commit & Push
+        run: |
+          git config --global user.name "Your Name"
+          git config --global user.email "your-email@example.com"
+          git add .
+          git commit -m "Sync LeetCode solutions"
+          git push origin main
