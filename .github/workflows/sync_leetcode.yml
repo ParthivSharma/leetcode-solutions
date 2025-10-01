@@ -36,11 +36,16 @@ jobs:
               leetcode show $slug -l cpp -g
           done
 
-      # Step 5: Commit & Push changes
+      # Step 5: Commit & Push only if there are changes
       - name: Commit & Push
         run: |
-          git config --global user.name "PARTHIVSHARMA"
+          git config --global user.name "ParthivSharma"
           git config --global user.email "parthiv.sharma8686@gmail.com"
           git add .
-          git commit -m "Sync LeetCode solutions" || echo "No changes to commit"
-          git push origin main
+          # Only commit if there are changes
+          if ! git diff-index --quiet HEAD; then
+              git commit -m "Sync LeetCode solutions"
+              git push origin main
+          else
+              echo "No changes to commit"
+          fi
