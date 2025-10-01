@@ -2,39 +2,45 @@ name: Sync LeetCode Solutions
 
 on:
   schedule:
-    - cron: '0 * * * *'   # every hour
-  workflow_dispatch:
+    - cron: '0 * * * *'   # runs every hour
+  workflow_dispatch:       # allows manual trigger anytime
 
 jobs:
   sync:
     runs-on: ubuntu-latest
 
     steps:
+      # Step 1: Checkout your repo
       - uses: actions/checkout@v3
 
+      # Step 2: Setup Node.js (required for leetcode-cli)
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '18'
 
+      # Step 3: Install leetcode-cli
       - name: Install leetcode-cli
         run: npm install -g leetcode-cli
 
-      - name: Fetch latest submissions
+      # Step 4: Fetch latest submissions
+      - name: Fetch latest C++ submissions
         env:
           LEETCODE_SESSION: ${{ secrets.LEETCODE_SESSION }}
         run: |
           mkdir -p cpp
           cd cpp
+          # Fetch last 10 accepted problems
           leetcode list -s AC | head -n 10 | while read line; do
               slug=$(echo $line | awk '{print $1}')
               leetcode show $slug -l cpp -g
           done
 
+      # Step 5: Commit & Push changes
       - name: Commit & Push
         run: |
-          git config --global user.name "Your Name"
-          git config --global user.email "your-email@example.com"
+          git config --global user.name "PARTHIVSHARMA"
+          git config --global user.email "parthiv.sharma8686@gmail.com"
           git add .
-          git commit -m "Sync LeetCode solutions"
+          git commit -m "Sync LeetCode solutions" || echo "No changes to commit"
           git push origin main
